@@ -1,6 +1,7 @@
 html, body {
   margin: 0px;
   padding: 0px;
+  background-color: black;
   
 }
 
@@ -10,7 +11,6 @@ html, body {
   flex-direction: column;
   min-height: 100vh;
   min-width: 100vw;
-  background-color: black;
   margin: 0px;
   padding: 0px;
 }
@@ -20,25 +20,24 @@ html, body {
   flex-direction: column;
   align-items: center;
   border: 1px solid white;
-  width: 98vw;
-  height: fit-content;
+  width: 99vw;
+  /* height: fit-content; */
+  height: 40vh;
   padding-top: 1vh;
-  
-  margin-top: 2vh;
-  margin-bottom: 2vh;
+  margin-bottom: 1vh;
 }
 
 .messagebox{
   display: flex;
-  width: 100%;
-  height: 5vh;
-  margin-top: 2vh;
+  width: 99%;
+  height: 7vh;
   border: 1px solid white;
   text-align: center;
-  font-size: 4vw;
+  font-size: 3vh;
   color: white;
   align-items: center;
   justify-content: center;
+  margin-bottom: 1vh;
 }
 
 .wordcontainer{
@@ -69,8 +68,8 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-bottom: 2vh;
-  border: 1px solid white;
+  margin-bottom: 1vh;
+  border: 1px solid blue;
   color: white;
   width: 100vw;
   height: 15vh;
@@ -82,18 +81,24 @@ html, body {
   display: flex;
   flex-direction: row;
   justify-content: center;
+  align-items: center;
   border: 1px solid white;
 }
 
 .alphabetletters{
   display: flex;
-  width: 9%;
-  height: 100%;
+  width: 10%;
+  height: 99%;
   text-align: center;
   justify-content: center;
+  background-color: black;
   color: white;
   transition: color 1s ease;
   font-size: 4vh
+}
+
+.alphabetletters.wide{
+  width: 15%
 }
 
 .alphabetletters.green{
@@ -119,12 +124,20 @@ html, body {
 .player-scores{
   display: grid;
   text-align: center;
-  grid-template-columns: 3fr 3fr 3fr;
+  grid-template-columns: 3fr 3fr 3fr 3fr 3fr;
   border: 1px solid white;
   color: white;
-  margin-bottom: 2vh;
-  font-size: 3vh;
-  width: 100%;
+  margin-bottom: 1vh;
+  font-size: 4vw;
+  width: 98%;
+  height: 14vh
+}
+
+.player-scores div{
+  display: flex;
+ 
+  justify-content: center;
+  align-items: center;
 }
 
 .lettercontainer.transparent{
@@ -157,12 +170,22 @@ input{
   right: 100vw
 }
 
-button{
+.buttonContainer{
+  height: 17vh;
   display: flex;
-  width: 90%;
-  height: 6vh;
+  flex-direction: column;
+  width: 99%;
+}
+
+.buttonContainer button{
+  height: 33%;
   justify-content: center;
   align-items: center;
-  margin-bottom: 1vh;
-  font-size: 4vh
+  font-size: 3vh
+} 
+
+.roundhighlighter{
+  color: green; 
+  background-color: white; 
+  border-radius: 1vh
 }

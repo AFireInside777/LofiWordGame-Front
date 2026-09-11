@@ -1,0 +1,48 @@
+.Modal{
+  position: absolute;
+  top: 35%;
+ 
+  height: fit-content;
+  width: fit-content;
+  max-width: 99%;
+  z-index: 1;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+  transition: height 1s ease, width 1s ease;
+  color: white;
+}
+
+.modal-overlay-closed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);   /* 60% dark */
+  backdrop-filter: blur(4px);              /* 4px blur */
+  -webkit-backdrop-filter: blur(4px);      /* Safari support */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  transition: backdrop-filter 1s ease, opacity 1s ease;
+}
+
+.modal-overlay-closed.open{
+  pointer-events: auto;
+  opacity: 1;
+  transition: backdrop-filter 1s ease, opacity 1s ease;
+}
+
+.modalGameInfo{
+  display: grid;
+  text-align: center;
+  grid-template-columns: 3fr 3fr 3fr 3fr 3fr;
+  font-size: 2vh;
+  border: 1px solid black;
+}
