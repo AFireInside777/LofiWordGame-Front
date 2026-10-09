@@ -1,8 +1,21 @@
+@font-face {
+  font-family: 'Roboto-Light';
+  src: url('./assets/ROBOTO-LIGHT.TTF') format('truetype');
+}
+
 html, body {
   margin: 0px;
   padding: 0px;
   background-color: black;
-  
+  font-family: 'Roboto-Light';
+}
+
+button {
+  font-family: 'Roboto-Light';
+}
+
+h1 {
+  color: white
 }
 
 #root {
@@ -13,31 +26,37 @@ html, body {
   min-width: 100vw;
   margin: 0px;
   padding: 0px;
+  font-family: 'Roboto-Light'
 }
 
 .guesscontainer{
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 1px solid white;
   width: 99vw;
   /* height: fit-content; */
   height: 40vh;
   padding-top: 1vh;
-  margin-bottom: 1vh;
+
 }
 
 .messagebox{
   display: flex;
+  flex-direction: row;
   width: 99%;
-  height: 7vh;
-  border: 1px solid white;
-  text-align: center;
+  height: 9vh;
+  
+}
+
+.messageComponents{
+  display: flex;
+  height: 99%;
+  width: 33%;
   font-size: 3vh;
   color: white;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1vh;
+  text-align: center;
 }
 
 .wordcontainer{
@@ -54,13 +73,15 @@ html, body {
   height: 10vw;
   margin-left: 1%;
   margin-right: 1%;
-  border: 1px solid white;
+  border: 1px solid gray;
+  background-color: gray;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 4vh;
   border-radius: 10vh;
   transition: color 1s ease, border-color 1s ease;
+  
 }
 
 .alphabet{
@@ -68,11 +89,11 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin-bottom: 1vh;
-  border: 1px solid blue;
   color: white;
   width: 100vw;
   height: 15vh;
+  padding-top: 1vh;
+  padding-bottom: 1vh;
 }
 
 .alphabetrows{
@@ -82,7 +103,7 @@ html, body {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  border: 1px solid white;
+
 }
 
 .alphabetletters{
@@ -91,10 +112,12 @@ html, body {
   height: 99%;
   text-align: center;
   justify-content: center;
-  background-color: black;
+  background-color: gray;
   color: white;
   transition: color 1s ease;
-  font-size: 4vh
+  font-size: 4vh;
+  border-radius: 1vh;
+  font-family: 'Roboto-Light';
 }
 
 .alphabetletters.wide{
@@ -125,53 +148,51 @@ html, body {
   display: grid;
   text-align: center;
   grid-template-columns: 3fr 3fr 3fr 3fr 3fr;
-  border: 1px solid white;
   color: white;
-  margin-bottom: 1vh;
   font-size: 4vw;
   width: 98%;
-  height: 14vh
+  height: 14vh;
+  font-family: 'Roboto-Light';
 }
 
 .player-scores div{
   display: flex;
- 
   justify-content: center;
   align-items: center;
 }
 
 .lettercontainer.transparent{
   border: 1px solid transparent;
+  background-color: black;
 }
 
 .lettercontainer.green{
-  color: rgb(6, 216, 6)
+  color: rgb(6, 216, 6);
+  border-color: green;
 }
 
 .lettercontainer.yellow{
-  color: yellow
+  color: yellow;
+  border-color: yellow
 }
 
 .lettercontainer.red{
-  color: red
+  color: rgb(160, 5, 5);
+  border-color: rgb(160, 5, 5);
 }
 
 .lettercontainer.purple{
-  color: purple
+  color: purple;
+  border-color: purple;
 }
 
 .lettercontainer.current{
-  border-color: white
-}
-
-input{
-  display: flex;
-  position: absolute;
-  right: 100vw
+  border-color: gray;
+  background-color: gray;
 }
 
 .buttonContainer{
-  height: 17vh;
+  height: 19vh;
   display: flex;
   flex-direction: column;
   width: 99%;
@@ -181,11 +202,16 @@ input{
   height: 33%;
   justify-content: center;
   align-items: center;
-  font-size: 3vh
+  font-size: 3vh;
+  border-radius: 1vh;
+  font-family: 'Roboto-Light';
+  color: white;
+  background-color: gray;
+  margin-top: 1vh;
 } 
 
 .roundhighlighter{
-  color: green; 
-  background-color: white; 
-  border-radius: 1vh
+  color: rgb(6, 97, 29); 
+  background-image: radial-gradient(closest-side ,white, black);
+  border-radius: 4vh
 }

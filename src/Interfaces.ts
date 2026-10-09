@@ -6,8 +6,9 @@ export interface GameObject{
     gametype: string,
     startingScore: number,
     numofrounds: number,
-    hintallowed: Boolean,
-    timer: Boolean,
+    hintallowed: boolean,
+    forfeitallowed: boolean,
+    timer: number,
     userid1?: string,
     userid2?: string,
     username1: string,
@@ -15,7 +16,6 @@ export interface GameObject{
     username1score: number,
     username2score?: number,
     resign?: Boolean,
-    victor?: string,
     roundobjects: RoundObject[]
 }
 
@@ -25,7 +25,7 @@ export interface RoundObject{
     correctword: string[],
     numofguesses: number,
     hintused: string[],
-    timer: Date
+    remainingTime: number,
     solved: Boolean,
     score: number
     roundid: string,
@@ -33,7 +33,8 @@ export interface RoundObject{
     gameid: string,
     username: string,
     guessAttempts: string[][],
-    message: string
+    message: string,
+    forfeit: Boolean
 }
 
 export interface scoreChart{
@@ -51,10 +52,14 @@ export interface hintCount {
 
 export interface Player1Props {
   roundData: RoundObject;
-  updateGameObj: (rounddata: RoundObject, scoreArray: Array<number>) => void  // This tells TypeScript that roundData is required
+  updateGameObj: (gameObj: GameObject) => void  // This tells TypeScript that roundData is required
   gameLength: number
   sGR: () => RoundObject[]
   currentScores: Array<number>
+  qg: () => void
+  returnToTitle: () => void
+  gameObj: GameObject
+  roundCounter: number
 }
 
 export const CreateRoundObjs = (gameid: string, username: string) =>{
@@ -78,7 +83,7 @@ export const CreateRoundObjs = (gameid: string, username: string) =>{
             correctword: exampleWords[g],
             numofguesses: 0,
             hintused: [],
-            timer: new Date(),
+            remainingTime: 0,
             solved: false,
             score: score,
             roundid: uuidv4(),
@@ -86,7 +91,8 @@ export const CreateRoundObjs = (gameid: string, username: string) =>{
             gameid: gameid,
             username: username,
             guessAttempts: [],
-            message: ""
+            message: "",
+            forfeit: false
         }
         wordArray.push(round)
     }
@@ -106,12 +112,16 @@ export const CreateGameObj = () =>{//Later, add parameters here that come from t
         startingScore: 300,
         numofrounds: 4,
         hintallowed: true,
-        timer: true,
+        timer: 0,
         username1: username1,
         username1score: 300,
-        resign: false,
-        victor: "No",
+        resign: true,
+        forfeitallowed: true,
         roundobjects: CreateRoundObjs(gameid, username1)
     }
     return newGame
+}
+
+export interface userReady {
+    player: "Ready" | "Not Ready"
 }

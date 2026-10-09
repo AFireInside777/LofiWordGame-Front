@@ -1,18 +1,30 @@
 import { useState } from 'react'
 import { useRef } from 'react' 
 import { useEffect } from 'react' 
+import { useReducer } from 'react'
 import Modal from '../Components/Modal'
+import ReadyModal from '../Components/ReadyModal'
+import ForfeitModal from '../Components/ForfeitModal'
+import QuitModal from '../Components/QuitModal'
+import TitleModal from '../Components/TitleModal'
+import { useImmer } from "use-immer"
+
+import { TimerReducer } from '../Components/Timer';
+import { timerFormat } from '../Components/Timer';
 import type { RoundObject } from '../Interfaces';
+import type { GameObject } from '../Interfaces';
 import type { scoreChart } from '../Interfaces';
 import type { Player1Props } from '../Interfaces';
 import type { hintCount } from '../Interfaces';
+import type { userReady } from '../Interfaces'
 
-function Player1({ roundData, updateGameObj, gameLength, sGR, currentScores }: Player1Props) {
+
+function Player1({ roundData, updateGameObj, gameLength, sGR, currentScores, qg, returnToTitle, gameObj, roundCounter }: Player1Props) {
 
   const currentScoreChart: scoreChart = {
     'incorrect': 5,
     'hintused': 10,
-    'forfeit': 30,
+    'forfeit': 65,
     'solvedintime': -15,
     'firsttwoguesses': -20
   }
@@ -75,11 +87,99 @@ function Player1({ roundData, updateGameObj, gameLength, sGR, currentScores }: P
   const [arraycounter, addcount] = useState<number>(0)
   const [CSSObject, setCSS] = useState<Record<string, string>>(keyboardLetters) //I forgot what this is for. Oh! For changing the colors of the visible alphabet.
   const [message, setMessage] = useState<string>("")
-  const [RoundData, setRoundData] = useState<RoundObject>(roundData)
-  const [ModalState, changeModalState] = useState<string>("modal-overlay-closed")
+  const [RoundData, setRoundData] = useState<RoundObject>(gameObj.roundobjects[roundCounter])
+  const [gameData, gameDataUpdate] = useImmer<GameObject>(gameObj)
   const [currentRScores, updateScores] = useState<Array<number>>(currentScores)
+  const [secondsTimer, dispatch] = useReducer(TimerReducer, { seconds: gameObj.timer*60, runStatus: false });
+  const [ready, setReady] = useState<userReady>({player: "Not Ready"})
+  const [QuitGame, decideQuit] = useState<boolean>(false)
 
-  var correctword: (string)[] = [...RoundData.correctword] //Example correct word
+  const [ModalState, changeModalState] = useState<string>("modal-overlay-closed")
+  const [ModalState2, changeModalState2] = useState<string>("modal-overlay-closed")
+  const [ForfeitModalState, changeForfeit] = useState<string>("modal-overlay-closed")
+  const [QuitModalState, changeQuit] = useState<string>("modal-overlay-closed")
+  
+
+  var correctword: (string)[] = [...gameObj.roundobjects[roundCounter].correctword] //Example correct word
+  var scoreCSS: (string)[] = ["", "", "", ""]
+
+  const calcScoreCSS = () =>{
+    scoreCSS[gameObj.roundobjects[roundCounter].round_number - 1] = "roundhighlighter"
+  }
+
+  calcScoreCSS()
+
+  function startTimer () {
+    dispatch({type : "Start"}) 
+  }
+
+  function stopTimer (){
+    dispatch({type : "Stop"}) 
+  }
+
+  function checkReady(){
+    if (ready.player == "Not Ready" 
+      && gameObj.roundobjects[roundCounter].remainingTime > 0
+      && ModalState2 == "modal-overlay-closed"){
+      openModal2()
+    }
+  }
+
+  checkReady()
+
+  function getReady(){
+    setReady({player:"Ready"})
+    changeModalState2("modal-overlay-closed")
+    startTimer()
+  }
+
+  function forfeitModal(state: string){
+    switch (state){
+      case "appear":
+        changeForfeit("modal-overlay-closed open")
+        break
+      case "disappear":
+        changeForfeit("modal-overlay-closed")
+    }
+  }
+
+  function quitModal(state: string){
+    switch (state){
+      case "appear":
+        changeQuit("modal-overlay-closed open")
+        break
+      case "disappear":
+        changeQuit("modal-overlay-closed")
+    }
+  }
+
+  const quitSign = () => {
+    decideQuit(true)
+  }
+  
+  function YesForfeit(){///For button in Forfeit Modal. User confirms they want to forfeit this rurn
+    stopTimer()
+    scoreAdjust("forfeit")
+    //Add new score to roundobject
+    // setRoundData(prev => ({
+    //   ...prev,
+    //   score: currentRScores[prev.round_number - 1],
+    //   forfeit: true,
+    //   time: secondsTimer.seconds,
+    //   message: "You've forfeited this round 😔"
+    // }))
+
+    gameDataUpdate(draft => {
+      draft.roundobjects[roundCounter].forfeit = true,
+      draft.roundobjects[roundCounter].remainingTime = secondsTimer.seconds
+      draft.roundobjects[roundCounter].message = "You've forfeited this round 😔"
+      //////////////////USE IMMER HERE MAKE SURE SCORE FROM GAME OBJECT SHOWS BELOW
+    })
+
+    forfeitModal("disappear")
+    openModal()
+  }
+
 
   const lettersBoxes = (number: number, arraynum: number) => {
     var rowArray = []
@@ -107,15 +207,12 @@ function Player1({ roundData, updateGameObj, gameLength, sGR, currentScores }: P
   }
 
   function scoreAdjust(scoreref: keyof typeof currentScoreChart){
-    let count: number = RoundData.round_number - 1
-    updateScores(prev =>{
-      var newScores: Array<number> = []
-      newScores = [...prev]
-      // newScores = newScores.map(n => n - currentScoreChart[scoreref])
-      for(let x = count; x < newScores.length; x++){
-        newScores[x] = newScores[x] - currentScoreChart[scoreref]
+    let count: number = gameData.roundobjects[roundCounter].round_number - 1
+    gameDataUpdate(draft => {
+      for(let x = count; x < gameData.roundobjects.length; x++){
+        draft.roundobjects[x].score = draft.roundobjects[x].score - currentScoreChart[scoreref]
       }
-      return newScores
+      draft.username1score -= currentScoreChart[scoreref]
     })
   }
 
@@ -189,10 +286,19 @@ function Player1({ roundData, updateGameObj, gameLength, sGR, currentScores }: P
 
   const checkLoss = (lastarray: string[][]) => {
     if (lastarray[5].length > 0){
-      setRoundData(prevObject => ({
-        ...prevObject,
-        message: `${prevObject.username}, you've lost this round 😩`
-      }))
+      // setRoundData(prevObject => ({
+      //   ...prevObject,
+      //   message: `${prevObject.username}, you've lost this round 😩`,
+      //   time: secondsTimer.seconds,
+      //   score: currentRScores[RoundData.round_number - 1],
+      //   solved: false
+      // }))
+
+      gameDataUpdate(draft => {
+        draft.roundobjects[roundCounter].remainingTime = secondsTimer.seconds
+        draft.roundobjects[roundCounter].message = `${draft.username1}, you've lost this round 😩`
+      })
+
       setTimeout(() => {openModal()}, 600)
     } else {
       if (arraycounter < letterArray.length-1){
@@ -296,26 +402,36 @@ function Player1({ roundData, updateGameObj, gameLength, sGR, currentScores }: P
         })
 
         //Right here, push the wrong guess into guessAttempts in RoundData
-        setRoundData(prevObject => ({
-          ...prevObject,
-          guessAttempts: [...prevObject.guessAttempts, letterArray[arraycounter]],
-          numofguesses: prevObject.numofguesses + 1
-        }))
+        // setRoundData(prevObject => ({
+        //   ...prevObject,
+        //   guessAttempts: [...prevObject.guessAttempts, letterArray[arraycounter]],
+        //   numofguesses: prevObject.numofguesses + 1
+        // }))
+        gameDataUpdate(draft => {
+          let draftcopy = draft.roundobjects[roundCounter]
+          draftcopy.guessAttempts = [...draftcopy.guessAttempts, letterArray[arraycounter]]
+          draftcopy.numofguesses = draftcopy.numofguesses + 1
+        })
         //////////////////////////////////
         scoreAdjust("incorrect")
         checkLoss(letterArray)
       } else {
-        setRoundData(prevObject => ({///////Triggers the Modal when you've won
-          ...prevObject,
-          message: prevObject.username + " ,you've won this round! 🤩",
-          solved: true
-        }))
+        // setRoundData(prevObject => ({///////Triggers the Modal when you've won
+        //   ...prevObject,
+        //   message: prevObject.username + " ,you've won this round! 🤩",
+        //   solved: true
+        // }))
+        gameDataUpdate(draft => {
+          let draftcopy = draft.roundobjects[roundCounter]
+          draftcopy.solved = true
+          draftcopy.message = draftcopy.username + " ,you've won this round! 🤩"
+        })
         if (arraycounter <= 1){
           scoreAdjust('firsttwoguesses') //Gives you extra points if you solve the puzzle in first two guesses
         }
+        stopTimer ()
         setTimeout(() => {openModal()}, 600);
       }
-
     }
   }
 
@@ -380,10 +496,10 @@ function Player1({ roundData, updateGameObj, gameLength, sGR, currentScores }: P
         [correctword[randomIndex]]: "alphabetletters purple" //Change this
       }))
 
-      setRoundData(prevObject => ({
-        ...prevObject,
-        hintused: [...prevObject.hintused, correctword[randomIndex]]
-      }))
+      gameDataUpdate(draft =>{
+        let draftcopy = draft.roundobjects[roundCounter]
+        draftcopy.hintused = [...draftcopy.hintused, correctword[randomIndex]]
+      })
 
       scoreAdjust("hintused")
     
@@ -392,21 +508,35 @@ function Player1({ roundData, updateGameObj, gameLength, sGR, currentScores }: P
   }
 
   useEffect (() => {
-
-    setRoundData(roundData);
-  }, [roundData])
+    gameDataUpdate(gameObj);
+  }, [gameObj])
 
   function openModal(){
     changeModalState("modal-overlay-closed open")
+  }
+
+  function openModal2(){
+    changeModalState2("modal-overlay-closed open")
   } 
 
-  const closeModal = () =>{
-    changeModalState("modal-overlay-closed")
-    setTimeout(() => {
-      updateGameObj(RoundData, currentRScores);
-    }, 1000)
-    
+  function closeModal (indicator: string) {
+    switch (indicator){
+      case "round":
+        changeModalState("modal-overlay-closed")
+        setTimeout(() => {
+          updateGameObj(gameData);
+        }, 1000)/////JUST SEND THEM THE GAMEOBJ, CHANGE IT IN APP.TSX TO JUST TAKE IT AND UPDATE, SEND TO API
+        break
+      case "endgame":
+        updateGameObj(gameData);
+    }
   }
+
+  useEffect(() => {
+    if (!secondsTimer.runStatus) return
+    const id = setInterval(() => dispatch({ type: 'Tick' }), 1000)
+    return () => clearInterval(id)
+  }, [secondsTimer.runStatus])
 
   return (
     <>
@@ -415,7 +545,11 @@ function Player1({ roundData, updateGameObj, gameLength, sGR, currentScores }: P
         {guessBoxes(6)}
         
       </div>
-      <div className="messagebox">{message}</div>
+      <div className="messagebox">
+        <div className='messageComponents'></div>
+        <div className='messageComponents'>{message}</div>
+        <div className='messageComponents'>{timerFormat(secondsTimer.seconds)}</div>
+      </div> 
 
       {/* <input
         style={{border: "1px solid white"}}
@@ -427,37 +561,74 @@ function Player1({ roundData, updateGameObj, gameLength, sGR, currentScores }: P
         maxLength={4}
       /> */}
       
-      <div className="alphabet">
-        <div className="alphabetrows">{guessLetters(1)}</div>
-        <div className="alphabetrows">{guessLetters(2)}</div>
-        <div className="alphabetrows">{guessLetters(3)}</div>
+      <div className = "buttonContainer">
+        <button style={{ "borderColor":"purple"}} onClick={giveHint}>Hint</button>
+        <button style={{ "borderColor":"orange"}} onClick={()=>forfeitModal("appear")}>Forfeit Turn</button>
+        <button style={{ "borderColor":"red"}} onClick={()=>quitModal("appear")}>Quit Game</button> {/*Just put openModal here for now*/}
       </div>
 
        <div className="player-scores"> {/*Fix this so that it shows line for only one person in one player, and will show two lines for two players*/}
-        <div>Game Info</div>
-        <div className="">Round 1</div>
-        <div>Round 2</div>{/*For the letters, make them glow neon*/}
-        <div>Round 3</div>
-        <div>Round 4</div>
-        <div>{RoundData.username}</div>{/*Username will go here */}
-        <div>{currentRScores[0]}</div> {/* These will become states for their CSS, we'll insert them from TitleScreen.*/}
-        <div>{currentRScores[1]}</div>
-        <div>{currentRScores[2]}</div>
-        <div>{currentRScores[3]}</div>
+        <div>Game Round</div>
+        <div className={scoreCSS[0]}>1</div>
+        <div className={scoreCSS[1]}>2</div>{/*For the letters, make them glow neon*/}
+        <div className={scoreCSS[2]}>{""}</div>
+        <div className={scoreCSS[3]}>{""}</div>
+       
+        <div>{gameData.username1}</div>{/*Username will go here */}
+        <div>{gameData.roundobjects[0].score}</div> {/* These will become states for their CSS, we'll insert them from TitleScreen.*/}
+        <div>{gameData.roundobjects[1].score}</div>
+        <div>{gameData.roundobjects[2].score}</div>
+        <div>{gameData.roundobjects[3].score}</div>
+        
         {/* <div>Player 2</div>
         <div>Score</div>
         <div>Score</div>
         <div>Score</div>
         <div>Score</div>  A function will generate this in a two-player screen. Or just have a separate file for Player 2*/}
       </div>
-      <div className = "buttonContainer">
-        <button onClick={giveHint}>Hint</button>
-        <button onClick={openModal}>Forfeit Turn</button>
-        <button>Resign Game</button>
+      
+
+      <div className="alphabet">
+        <div className="alphabetrows">{guessLetters(1)}</div>
+        <div className="alphabetrows">{guessLetters(2)}</div>
+        <div className="alphabetrows">{guessLetters(3)}</div>
       </div>
 
-      <Modal roundData = {RoundData} modalstate = {ModalState} closeModal = {closeModal} gameLength = {gameLength} sGR = {sGR}/>
-      </>
+      <Modal 
+        roundsData = {gameData.roundobjects} 
+        modalstate = {ModalState} 
+        closeModal = {closeModal} 
+        roundCounter = {roundCounter}
+        readyStat = {ready}
+        gamequit = {QuitGame}
+        returnToTitle = {returnToTitle}/>
+
+      <ReadyModal 
+        ReadyFunc = {getReady}
+        modalstate = {ModalState2} 
+      />
+
+      <ForfeitModal
+        ForfeitModalState = {ForfeitModalState}
+        confirmForfeit = {YesForfeit}
+        forfeitModal = {forfeitModal}
+      />
+
+      <QuitModal
+        QuitModalState = {QuitModalState}
+        quitModal = {quitModal}
+        qg = {qg}
+        quitSign = {quitSign}
+        openModal = {openModal}
+      />
+
+
+
+    </>
+
+      
+
+      
   )
 }
 
