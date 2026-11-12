@@ -1,40 +1,90 @@
 import {v4 as uuidv4} from 'uuid'
+import type { AuthUser } from './api'
 
 export interface GameObject{
-    gameid: string,
-    datecreated: Date,
-    gametype: string,
-    startingScore: number,
-    numofrounds: number,
-    hintallowed: boolean,
+    datecreated: string,
     forfeitallowed: boolean,
+    gametype: string,
+    hintallowed: boolean,
+    numofrounds: number,
+    status: string,
     timer: number,
-    userid1?: string,
+    userid1?: string | null,
     userid2?: string,
-    username1: string,
+    username1: string | null
     username2?: string,
-    username1score: number,
-    username2score?: number,
-    resign?: Boolean,
-    roundobjects: RoundObject[]
+}
+
+export interface QuitGame extends GameObject{
+    quit: boolean
+}
+
+export const CreateGameObj = (timerChoice: number) =>{//Later, add parameters here that come from the users
+    let newGame: GameObject = {
+        datecreated: new Date().toISOString(),
+        forfeitallowed: true,
+        gametype: "Today's Word Selection",
+        numofrounds: 4,
+        hintallowed: true,
+        status: "pending",
+        timer: timerChoice*60,
+        username1: null,
+        userid1: null
+    }
+    return newGame
+}
+
+export interface hint{
+    hintCSS: string[],
+    hint: string[]
+}
+
+export interface guess{
+    CSSGuessArray: string[],
+    AlphabetCSS: string[]
+}
+
+export interface roundinfo{
+    "score": number,
+    "solved": boolean,
+    "remainingTime": number,
+    "forfeit": boolean,
+    "guess": string[],
+    guessResponse: guess,
+    "hintresponse": hint,
+    "rounds"?: RoundObject[],
+    "quit": boolean,
+    "message": string
+}
+
+export interface roundComms{
+    "gameid": string,
+    "roundids": string[],
+    "roundCounter": number,
+    "roundinfo": roundinfo
+}
+
+export interface gameReturnObj {
+    Message: string,
+    roundComms: roundComms
 }
 
 
-export interface RoundObject{
+export interface RoundObject {
     round_number: number,
+    hintsused: string[],
     correctword: string[],
     numofguesses: number,
-    hintused: string[],
     remainingTime: number,
-    solved: Boolean,
-    score: number
-    roundid: string,
-    datecreated: Date,
-    gameid: string,
-    username: string,
-    guessAttempts: string[][],
-    message: string,
-    forfeit: Boolean
+    solved: boolean,
+    endingScore: number,
+    startingScore: number,
+    forfeit: boolean
+}
+
+export type GameEnterResponse = {
+    "Message": string,
+    "roundComms": roundComms
 }
 
 export interface scoreChart{
@@ -48,80 +98,49 @@ export interface scoreChart{
 export interface hintCount {
     guessedLetters : string[];
     indexRemain : number[]
-  }
+}
 
 export interface Player1Props {
-  roundData: RoundObject;
-  updateGameObj: (gameObj: GameObject) => void  // This tells TypeScript that roundData is required
-  gameLength: number
-  sGR: () => RoundObject[]
-  currentScores: Array<number>
-  qg: () => void
   returnToTitle: () => void
-  gameObj: GameObject
   roundCounter: number
+  roundComms: roundComms
+  gameObj: GameObject
+  changeRound: () => void
+  user: AuthUser
 }
 
-export const CreateRoundObjs = (gameid: string, username: string) =>{
-
-    let wordArray: RoundObject[] = []
-
-    let exampleWords = [
-        ["B","A","N","A","N","A"],
-        ["S","T","R","I","N","G"],
-        ["N","U","M","B","E","R"],
-        ["C",'O','O','K','I','E']
-    ]
-
-    let score: number = 300
-
-    for (let g = 0; g < exampleWords.length; g++){
-
-
-        let round: RoundObject = {
-            round_number: g+1,
-            correctword: exampleWords[g],
-            numofguesses: 0,
-            hintused: [],
-            remainingTime: 0,
-            solved: false,
-            score: score,
-            roundid: uuidv4(),
-            datecreated: new Date(),
-            gameid: gameid,
-            username: username,
-            guessAttempts: [],
-            message: "",
-            forfeit: false
-        }
-        wordArray.push(round)
-    }
-    return wordArray
-}
-
-
-export const CreateGameObj = () =>{//Later, add parameters here that come from the users
-
-    const gameid = uuidv4()
-    const username1 = 'ExampleUser'
-
-    let newGame: GameObject = {
-        gameid: gameid,
-        datecreated: new Date(),
-        gametype: "Single",
-        startingScore: 300,
-        numofrounds: 4,
-        hintallowed: true,
-        timer: 0,
-        username1: username1,
-        username1score: 300,
-        resign: true,
-        forfeitallowed: true,
-        roundobjects: CreateRoundObjs(gameid, username1)
-    }
-    return newGame
-}
 
 export interface userReady {
     player: "Ready" | "Not Ready"
+}
+
+export var keyboardLetters: Record<string, string> = {
+    "A": "alphabetletters",
+    "B": "alphabetletters",
+    "C": "alphabetletters",
+    "D": "alphabetletters",
+    "E": "alphabetletters",
+    "F": "alphabetletters",
+    "G": "alphabetletters",
+    "H": "alphabetletters",
+    "I": "alphabetletters",
+    "J": "alphabetletters",
+    "K": "alphabetletters",
+    "L": "alphabetletters",
+    "M": "alphabetletters",
+    "N": "alphabetletters",
+    "O": "alphabetletters",
+    "P": "alphabetletters",
+    "Q": "alphabetletters",
+    "R": "alphabetletters",
+    "S": "alphabetletters",
+    "T": "alphabetletters",
+    "U": "alphabetletters",
+    "V": "alphabetletters",
+    "W": "alphabetletters",
+    "X": "alphabetletters",
+    "Y": "alphabetletters",
+    "Z": "alphabetletters",
+    "←": "alphabetletters wide",
+    "⤶": "alphabetletters wide"
 }
